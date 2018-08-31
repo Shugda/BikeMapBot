@@ -16,7 +16,6 @@ class point
 public:
 	double first;
 	double second;
-	vector<int> good;
 };
 
 vector<point> fastfood;
@@ -33,35 +32,14 @@ void load()
 	ifstream file_1("parks.txt");
 //	ifstream file_2("fastfood.txt");
 	double d;
-	parks.clear();
-	fastfood.clear();
 	while(file_1 >> d)
 	{
 		point p;
 		p.first = d;
 		file_1 >> d;
 		p.second = d;
-
-		int str_num;	
-		char c;
-		while (file_1 >> c)
-		{
-			if (c  == '#')
-				break;
-			else if (c == ' ')
-				continue;
-
-			file_1.putback(c);
-			file_1 >> str_num;
-			p.good.push_back(str_num);
-		}
-
-		string s;
-		file_1 >> s;
 		parks.push_back(p);
 	}
-
-	parks[0] = parks[0];
 
 /*
 	while(file_2 >> d)
@@ -144,29 +122,25 @@ void placesSort(vector<point> &v)
 
 void onRoute(Message::Ptr msg)
 {
-	load();
-
+	vector<point> tmp_parks = parks;
+	tmp_parks.erase(tmp_parks.begin());
 	vector<point> coords = {parks[0]};
-	int p = 0;
+
 	for(int j = 0;j < 4;++j)
 	{
-		p = parks[p].good[rand() % parks[p].good.size()];
-		cout << p << endl;
-		for(size_t i = 0;i < parks.size();++i)
-		{
-			vector<int>::iterator used = find(parks[i].good.begin(), parks[i].good.end(), p);
-			if(used != parks[i].good.end())
-				parks[i].good.erase(used);
-		}
-		coords.push_back(parks[p]);
+		int p = rand() % tmp_parks.size();
+		coords.push_back(tmp_parks[p]);
+		tmp_parks.erase(tmp_parks.begin() + p);
 	}
+
+	placesSort(coords);
 	coords.push_back(parks[0]);
 
 	//dst
 	double dst = 0;
 	for (size_t i = 0; i < coords.size()-1; ++i)
 		dst += calcDist(coords[i], coords[i+1]);
-	dst *= 1.2;
+	dst *= 1.25;
 
 	// url
 	string url = "https://www.google.ru/maps/dir/";
@@ -179,6 +153,8 @@ void onRoute(Message::Ptr msg)
 
 int main()
 {
+	load();
+
 	bot.getEvents().onNonCommandMessage([](Message::Ptr message) { onNonCommandMessage(message); });
 	bot.getEvents().onCommand("start", [](Message::Ptr message) { onStart(message); });
 	bot.getEvents().onCommand("fastfood", [](Message::Ptr message) { onFastfood(message); });
