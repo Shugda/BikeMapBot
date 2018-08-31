@@ -61,8 +61,6 @@ void load()
 		parks.push_back(p);
 	}
 
-	parks[0] = parks[0];
-
 /*
 	while(file_2 >> d)
 	{
