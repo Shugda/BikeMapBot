@@ -16,7 +16,7 @@ class point
 public:
 	double first;
 	double second;
-	vector<> good;
+	vector<int> good;
 };
 
 vector<point> fastfood;
@@ -25,7 +25,6 @@ int readDis;
 const double radius = 6371;
 const double pi = 3.141592/180;
 const string token = "648697435:AAFBxZcZf_Y9Uxt2DYm0aqa-hoNp22hAf9E";
-const point meet = {55.690673, 37.499047};
 
 Bot bot(token);
 
@@ -33,36 +32,37 @@ void load()
 {
 	ifstream file_1("parks.txt");
 //	ifstream file_2("fastfood.txt");
-
 	double d;
+	parks.clear();
+	fastfood.clear();
 	while(file_1 >> d)
 	{
 		point p;
 		p.first = d;
 		file_1 >> d;
 		p.second = d;
-		
+
+		int str_num;	
 		char c;
-		while(file_1 >> c)
+		while (file_1 >> c)
 		{
-			if (c == '#')
+			if (c  == '#')
 				break;
 			else if (c == ' ')
 				continue;
+
 			file_1.putback(c);
-			file_1 >> d;
-			point q;
-			q.first = d;
-			file_1 >> d;
-			q.second = d;
-			p.good.push_back(q);
+			file_1 >> str_num;
+			p.good.push_back(str_num);
 		}
 
 		string s;
-		getline(file_1, s);
-
+		file_1 >> s;
 		parks.push_back(p);
 	}
+
+	parks[0] = parks[0];
+
 /*
 	while(file_2 >> d)
 	{
@@ -106,7 +106,7 @@ void onFastfood(Message::Ptr msg)
 	string text;
 
 	for (size_t i = 0; i < fastfood.size(); ++i)
-		text += to_string(calcDist(meet, fastfood[i])) + "\n";		
+		text += to_string(calcDist(parks[0], fastfood[i])) + "\n";		
 
 	bot.getApi().sendMessage(msg->chat->id, "Distance to fastfood:\n " + text);
 }
@@ -116,7 +116,7 @@ void onParks(Message::Ptr msg)
 	string text;
 
 	for (size_t i = 0; i < parks.size(); ++i)
-		text += to_string(calcDist(meet, parks[i])) + "\n";		
+		text += to_string(calcDist(parks[0], parks[i])) + "\n";		
 
 	bot.getApi().sendMessage(msg->chat->id, "Distance to parks:\n " + text);
 }
@@ -144,12 +144,23 @@ void placesSort(vector<point> &v)
 
 void onRoute(Message::Ptr msg)
 {
-	point p1 = parks[rand() % parks.size()];
-	point p2 = p1.good[rand() % p1.good.size()];
-	point p3 = p2.good[rand() % p2.good.size()];
-	point p4 = p3.good[rand() % p3.good.size()];
+	load();
 
-	vector<point> coords = {meet, p1, p2, p3, p4, meet};
+	vector<point> coords = {parks[0]};
+	int p = 0;
+	for(int j = 0;j < 4;++j)
+	{
+		p = parks[p].good[rand() % parks[p].good.size()];
+		cout << p << endl;
+		for(size_t i = 0;i < parks.size();++i)
+		{
+			vector<int>::iterator used = find(parks[i].good.begin(), parks[i].good.end(), p);
+			if(used != parks[i].good.end())
+				parks[i].good.erase(used);
+		}
+		coords.push_back(parks[p]);
+	}
+	coords.push_back(parks[0]);
 
 	//dst
 	double dst = 0;
@@ -174,7 +185,6 @@ int main()
 	bot.getEvents().onCommand("parks", [](Message::Ptr message) { onParks(message); });
 	bot.getEvents().onCommand("route", [](Message::Ptr message) { onRoute(message); });
 
-	load();
 	srand(time(0));
 
 	try 

@@ -4,6 +4,9 @@ all:
 run: all
 	torsocks ./bot
 
+debug: all
+	torsocks gdb ./bot
+
 commit:
 	git add --a
 	git commit
