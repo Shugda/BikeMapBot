@@ -29,8 +29,7 @@ Bot bot(token);
 
 void load()
 {
-	ifstream file_1("parks.txt");
-//	ifstream file_2("fastfood.txt");
+	ifstream file_1("places.txt");
 	double d;
 	while(file_1 >> d)
 	{
@@ -40,19 +39,6 @@ void load()
 		p.second = d;
 		parks.push_back(p);
 	}
-
-/*
-	while(file_2 >> d)
-	{
-		string a;
-		point p;
-		p.first = d;
-		file_2 >> d;
-		p.second = d;
-		file_2 >> a;
-		fastfood.push_back(p);
-	}
-*/
 }
 
 double calcDist(point p1, point p2)
@@ -139,15 +125,14 @@ void onRoute(Message::Ptr msg)
 	//dst
 	double dst = 0;
 	for (size_t i = 0; i < coords.size()-1; ++i)
-		dst += calcDist(coords[i], coords[i+1]);
-	dst *= 1.25;
+		cout << corrds[i].first << ' ' << coords.second << endl;
 
 	// url
 	string url = "https://www.google.ru/maps/dir/";
 	for (size_t i = 0; i < coords.size(); ++i)
 		url += getCoords(coords[i]);
 	url += "data=!3m1!4b1!4m2!4m1!3e2"; // magic, don't edit
-
+	
 	bot.getApi().sendMessage(msg->chat->id, "Заезд на " +/* to_string(int(ceil(dst))) */to_string(readDis) + " км.\n" + url);
 }
 
